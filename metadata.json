@@ -1,5 +1,5 @@
 {
-  "name": "WhatsStore Platform",
+  "name": "ComXStore",
   "description": "A mobile-first WhatsApp-based inventory and storefront platform for small businesses. Designed for Web and Expo Go native environments.",
   "requestFramePermissions": [
     "camera",
