@@ -1,0 +1,33 @@
+
+{
+  "expo": {
+    "name": "WhatsStore",
+    "slug": "whats-store-platform",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "https://api.dicebear.com/7.x/shapes/svg?seed=WhatsStore",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "https://api.dicebear.com/7.x/shapes/svg?seed=WhatsStoreSplash",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.whatsstore.platform"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "https://api.dicebear.com/7.x/shapes/svg?seed=WhatsStoreAndroid",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.whatsstore.platform"
+    },
+    "web": {
+      "favicon": "https://api.dicebear.com/7.x/shapes/svg?seed=favicon"
+    }
+  }
+}
