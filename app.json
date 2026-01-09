@@ -1,14 +1,14 @@
 
 {
   "expo": {
-    "name": "WhatsStore",
-    "slug": "whats-store-platform",
+    "name": "ComXStore",
+    "slug": "comx-store-native",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "https://api.dicebear.com/7.x/shapes/svg?seed=WhatsStore",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "https://api.dicebear.com/7.x/shapes/svg?seed=WhatsStoreSplash",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,17 +17,21 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.whatsstore.platform"
+      "bundleIdentifier": "com.comx.store"
     },
     "android": {
+      "package": "com.comx.store",
       "adaptiveIcon": {
-        "foregroundImage": "https://api.dicebear.com/7.x/shapes/svg?seed=WhatsStoreAndroid",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "com.whatsstore.platform"
+      }
     },
     "web": {
-      "favicon": "https://api.dicebear.com/7.x/shapes/svg?seed=favicon"
-    }
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "scheme": "comxstore"
   }
 }

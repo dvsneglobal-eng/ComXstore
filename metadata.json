@@ -1,17 +1,12 @@
 {
-  "name": "ComXStore",
-  "description": "A mobile-first WhatsApp-based inventory and storefront platform for small businesses. Designed for Web and Expo Go native environments.",
+  "name": "ComXStore Native",
+  "description": "Pure Native React Native Expo application for WhatsApp-based commerce.",
   "requestFramePermissions": [
     "camera",
     "microphone"
   ],
   "platforms": [
-    "web",
     "ios",
     "android"
-  ],
-  "deployment": {
-    "provider": "Firebase Hosting",
-    "spa": true
-  }
+  ]
 }

@@ -1,18 +1,12 @@
 
-/**
- * Centralized API Service Layer
- * Handles all communication with the n8n backend.
- */
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const getBaseUrl = (): string => {
-  // Try Vite environment variable first
-  const envUrl = (import.meta as any).env?.VITE_API_BASE_URL;
-  // Fallback to local storage configuration (set in Profile page)
-  return envUrl || localStorage.getItem('ws_backend_url') || '';
+export const getBaseUrl = async (): Promise<string> => {
+  return (await AsyncStorage.getItem('ws_backend_url')) || '';
 };
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('ws_token');
+const getAuthHeaders = async () => {
+  const token = await AsyncStorage.getItem('ws_token');
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
@@ -22,35 +16,26 @@ const getAuthHeaders = () => {
   return headers;
 };
 
-/**
- * Generic request helper for standardized error handling
- */
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const baseUrl = getBaseUrl();
+  const baseUrl = await getBaseUrl();
   
   if (!baseUrl) {
-    throw new Error('Backend URL not configured. Please set it in Settings/Profile.');
+    throw new Error('Backend URL not configured');
   }
 
-  // Ensure endpoint starts with /
-  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const url = `${baseUrl}${path}`;
+  const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(url, {
       ...options,
-      headers: {
-        ...getAuthHeaders(),
-        ...options.headers,
-      },
+      headers: { ...headers, ...options.headers },
     });
 
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      // Try to extract a meaningful error message from n8n or standard HTTP error
-      const errorMessage = data?.message || data?.error || `Request failed with status ${response.status}`;
-      throw new Error(errorMessage);
+      throw new Error(data?.message || `Request failed: ${response.status}`);
     }
 
     return data as T;
@@ -61,88 +46,59 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 }
 
 export const apiService = {
-  isConfigured: () => !!getBaseUrl(),
+  // Fix: returns a promise, so callers must await or use .then()
+  async isConfigured() {
+    return !!(await getBaseUrl());
+  },
 
-  /**
-   * Fetch all products for the catalog
-   */
   async fetchProducts(): Promise<any[]> {
     return apiRequest<any[]>('/products');
   },
 
-  /**
-   * Fetch a single product by its unique ID
-   */
-  async fetchProductById(id: string): Promise<any> {
-    return apiRequest<any>(`/product?id=${id}`);
-  },
-
-  /**
-   * Fetch products marked as featured
-   */
   async fetchFeaturedProducts(): Promise<any[]> {
     return apiRequest<any[]>('/featured-products');
   },
 
-  /**
-   * Request a 6-digit OTP via WhatsApp
-   */
-  async requestOtp(phone: string): Promise<{ success: boolean; message?: string }> {
-    return apiRequest<{ success: boolean; message?: string }>('/auth/request-otp', {
+  async fetchProductById(id: string): Promise<any> {
+    return apiRequest<any>(`/product?id=${id}`);
+  },
+
+  // Fix: Added fetchOrders for admin and context awareness
+  async fetchOrders(): Promise<any[]> {
+    return apiRequest<any[]>('/orders');
+  },
+
+  // Fix: Added fetchOrderById for detailed order tracking
+  async fetchOrderById(id: string): Promise<any> {
+    return apiRequest<any>(`/order?id=${id}`);
+  },
+
+  async requestOtp(phone: string): Promise<any> {
+    return apiRequest('/auth/request-otp', {
       method: 'POST',
       body: JSON.stringify({ phone }),
     });
   },
 
-  /**
-   * Verify the received OTP
-   */
-  async verifyOtp(phone: string, otp: string): Promise<{ token: string; isAdmin?: boolean }> {
-    return apiRequest<{ token: string; isAdmin?: boolean }>('/auth/verify-otp', {
+  async verifyOtp(phone: string, otp: string): Promise<any> {
+    return apiRequest('/auth/verify-otp', {
       method: 'POST',
       body: JSON.stringify({ phone, otp }),
     });
   },
 
-  /**
-   * Submit a new order
-   */
-  async createOrder(payload: { 
-    customer_phone: string; 
-    items: Array<{ product_id: string; qty: number }>;
-    total: number;
-  }): Promise<{ success: boolean; order_id: string }> {
-    return apiRequest<{ success: boolean; order_id: string }>('/order', {
+  async createOrder(payload: any): Promise<any> {
+    return apiRequest('/order', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   },
 
-  /**
-   * Update an existing order (Admin only)
-   */
-  async updateOrder(id: string, payload: { 
-    items: Array<{ product_id: string; quantity: number }>;
-    total: number;
-    status?: string;
-  }): Promise<{ success: boolean }> {
-    return apiRequest<{ success: boolean }>(`/order?id=${id}`, {
+  // Fix: Added updateOrder to allow status updates and edits
+  async updateOrder(id: string, payload: any): Promise<any> {
+    return apiRequest(`/order?id=${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });
-  },
-
-  /**
-   * Admin: Fetch all orders
-   */
-  async fetchOrders(): Promise<any[]> {
-    return apiRequest<any[]>('/orders');
-  },
-
-  /**
-   * Fetch a single order by ID
-   */
-  async fetchOrderById(id: string): Promise<any> {
-    return apiRequest<any>(`/order?id=${id}`);
   }
 };

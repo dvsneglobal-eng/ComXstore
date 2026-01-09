@@ -14,14 +14,22 @@ const Catalog: React.FC = () => {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [isConfigured, setIsConfigured] = useState(apiService.isConfigured());
+  // Fix: isConfigured is async, initialized to false and checked in useEffect
+  const [isConfigured, setIsConfigured] = useState(false);
   
   const categoryFilter = searchParams.get('category') || 'All';
 
   useEffect(() => {
+    const checkConfig = async () => {
+      const configured = await apiService.isConfigured();
+      setIsConfigured(configured);
+    };
+    checkConfig();
+  }, []);
+
+  useEffect(() => {
     if (!isConfigured) {
-      setLoading(false);
-      return;
+      if (!loading) return; 
     }
 
     const loadProducts = async () => {
@@ -37,8 +45,13 @@ const Catalog: React.FC = () => {
         setLoading(false);
       }
     };
-    loadProducts();
-  }, [isConfigured]);
+
+    if (isConfigured) {
+      loadProducts();
+    } else {
+      setLoading(false);
+    }
+  }, [isConfigured, loading]);
 
   useEffect(() => {
     let result = products;

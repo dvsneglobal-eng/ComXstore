@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Profile: React.FC = () => {
   const { user, logout } = useAuth();
@@ -9,13 +10,18 @@ const Profile: React.FC = () => {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('ws_backend_url');
-    if (stored) setBackendUrl(stored);
+    // Fix: Unified storage to AsyncStorage for compatibility with apiService
+    const loadConfig = async () => {
+      const stored = await AsyncStorage.getItem('ws_backend_url');
+      if (stored) setBackendUrl(stored);
+    };
+    loadConfig();
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('ws_backend_url', backendUrl);
+    // Fix: Save using AsyncStorage as apiService expects
+    await AsyncStorage.setItem('ws_backend_url', backendUrl);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };

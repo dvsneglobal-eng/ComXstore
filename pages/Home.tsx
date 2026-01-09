@@ -10,13 +10,21 @@ import { ProductSkeleton, Skeleton } from '../components/Skeleton';
 const Home: React.FC = () => {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isConfigured, setIsConfigured] = useState(apiService.isConfigured());
+  // Fix: isConfigured is async, so we initialize to false and fetch in useEffect
+  const [isConfigured, setIsConfigured] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const checkConfig = async () => {
+      const configured = await apiService.isConfigured();
+      setIsConfigured(configured);
+    };
+    checkConfig();
+  }, []);
+
+  useEffect(() => {
     if (!isConfigured) {
-      setLoading(false);
-      return;
+      if (!loading) return; // Wait until initial check is done
     }
 
     const loadFeatured = async () => {
@@ -32,8 +40,13 @@ const Home: React.FC = () => {
         setLoading(false);
       }
     };
-    loadFeatured();
-  }, [isConfigured]);
+    
+    if (isConfigured) {
+      loadFeatured();
+    } else {
+      setLoading(false);
+    }
+  }, [isConfigured, loading]);
 
   return (
     <div className="space-y-10 pb-12 animate-fadeIn">

@@ -1,11 +1,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
-  login: (userData: { phone: string; token: string; isAdmin?: boolean }) => void;
-  logout: () => void;
+  login: (userData: { phone: string; token: string; isAdmin?: boolean }) => Promise<void>;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -16,32 +17,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('ws_user');
-    if (savedUser) {
-      try {
+    const loadSession = async () => {
+      const savedUser = await AsyncStorage.getItem('ws_user');
+      if (savedUser) {
         setUser(JSON.parse(savedUser));
-      } catch (e) {
-        localStorage.removeItem('ws_user');
       }
-    }
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+    loadSession();
   }, []);
 
-  const login = (userData: { phone: string; token: string; isAdmin?: boolean }) => {
+  const login = async (userData: { phone: string; token: string; isAdmin?: boolean }) => {
     const newUser: User = { 
       phone: userData.phone, 
       isAuthenticated: true, 
       isAdmin: userData.isAdmin 
     };
     setUser(newUser);
-    localStorage.setItem('ws_user', JSON.stringify(newUser));
-    localStorage.setItem('ws_token', userData.token);
+    await AsyncStorage.setItem('ws_user', JSON.stringify(newUser));
+    await AsyncStorage.setItem('ws_token', userData.token);
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
-    localStorage.removeItem('ws_user');
-    localStorage.removeItem('ws_token');
+    await AsyncStorage.removeItem('ws_user');
+    await AsyncStorage.removeItem('ws_token');
   };
 
   return (
